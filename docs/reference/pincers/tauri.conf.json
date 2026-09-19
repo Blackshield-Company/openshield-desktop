@@ -1,0 +1,42 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "OpenClaw Pincers",
+  "version": "0.3.3",
+  "identifier": "ai.openclaw.pincers",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../build"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "OpenClaw Pincers",
+        "width": 1280,
+        "height": 840,
+        "minWidth": 900,
+        "minHeight": 600
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "publisher": "OpenClaw Community",
+    "copyright": "MIT © 2026 OpenClaw Community",
+    "category": "DeveloperTool",
+    "shortDescription": "Desktop control center for OpenClaw gateways",
+    "longDescription": "OpenClaw Pincers — chat, config, cron, approvals, logs, files, models, and updates for any OpenClaw gateway."
+  }
+}

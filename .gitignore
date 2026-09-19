@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Build output
+/build/
+/.svelte-kit/
+/package/
+dist/
+
+# Tauri / Rust
+src-tauri/target/
+src-tauri/gen/schemas/
+
+# Env
+.env
+.env.*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.log
+
+# Android target lives in the openshield-mobile repo
+src-tauri/gen/android/

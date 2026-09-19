@@ -1,0 +1,188 @@
+/*
+ * OpenShield Desktop — global theme system.
+ *
+ * Every color in the app flows through these CSS variables; a theme is just a
+ * [data-theme] attribute swap on <html>. Flagship: Blackshield. Secondary:
+ * Synthwave '84. Part of the Blackshield Company.
+ */
+
+:root {
+  --font-mono: "JetBrains Mono", "Cascadia Code", "Fira Code", ui-monospace,
+    Menlo, Consolas, monospace;
+  --font-ui: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --radius: 6px;
+  --nav-rail-width: 216px;
+  --nav-bottom-height: 56px;
+  --wide-breakpoint: 760px;
+}
+
+/* ── Blackshield (flagship) ─────────────────────────────────────────── */
+:root,
+[data-theme="blackshield"] {
+  --bg: #101014;
+  --bg-elevated: #17171d;
+  --bg-inset: #0b0b0e;
+  --surface: #1c1c23;
+  --surface-hover: #24242d;
+  --border: #2b2b34;
+  --border-strong: #3a3a46;
+
+  --text: #8f959c; /* steel */
+  --text-strong: #d8d3c8; /* bone */
+  --text-faint: #5a5f66;
+
+  --accent: #c1121f; /* blood */
+  --accent-hover: #e01e2b;
+  --accent-soft: rgba(193, 18, 31, 0.16);
+  --accent-contrast: #f5f0e6;
+
+  --ok: #4e9a51;
+  --warn: #c9a227;
+  --err: #c1121f;
+
+  color-scheme: dark;
+}
+
+/* ── Synthwave '84 ──────────────────────────────────────────────────── */
+[data-theme="synthwave84"] {
+  --bg: #240037;
+  --bg-elevated: #31004b;
+  --bg-inset: #180024;
+  --surface: #3a0059;
+  --surface-hover: #48006e;
+  --border: #550080;
+  --border-strong: #8f00ff;
+
+  --text: #ff7edb; /* pink neon */
+  --text-strong: #f3e70f; /* electric yellow */
+  --text-faint: #b45ac2;
+
+  --accent: #ff00ff; /* magenta */
+  --accent-hover: #ff4dff;
+  --accent-soft: rgba(255, 0, 255, 0.18);
+  --accent-contrast: #240037;
+
+  --ok: #4af0a0;
+  --warn: #f3e70f;
+  --err: #ff2e63;
+
+  color-scheme: dark;
+}
+
+/* ── Base ───────────────────────────────────────────────────────────── */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* WebKitGTK (Tauri on Linux) needs explicit form control colors — inherit
+ * is unreliable there, so force background/color on every input. */
+input,
+textarea,
+select,
+button {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+input,
+textarea,
+select {
+  background: var(--bg-inset) !important;
+  color: var(--text-strong) !important;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-faint);
+}
+
+button {
+  background: var(--surface);
+  color: var(--text-strong);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 14px;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+button:hover:not(:disabled) {
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-contrast);
+  font-weight: 600;
+}
+
+button.primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+h1,
+h2,
+h3 {
+  color: var(--text-strong);
+  font-weight: 600;
+  margin: 0;
+}
+
+code,
+pre {
+  font-family: var(--font-mono);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-inset);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 5px;
+}
