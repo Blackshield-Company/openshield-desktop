@@ -337,7 +337,7 @@ const mockMemories: MockMemory[] = [
     session: "mock-s2",
     project: "openshield",
     timestamp: new Date(NOW - 1 * MOCK_DAY).toISOString(),
-    snippet: "Pairing tokens are short-lived (120s TTL) and LAN mode requires the bearer token on every request including the WS handshake.",
+    snippet: "Pairing tokens are short-lived (120s TTL). A bearer token is required on every host, including localhost and the WebSocket handshake.",
     score: 0.78,
   },
   {

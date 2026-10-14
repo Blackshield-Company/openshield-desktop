@@ -42,6 +42,15 @@ CSS variables + Svelte store, swapped via `data-theme` on `<html>`:
   `#C1121F` blood, `#D8D3C8` bone.
 - **Synthwave '84**: `#240037`, `#8F00FF`, `#FF7EDB`, `#FF00FF`, `#F3E70F`.
 
+## Auth
+
+`openshield serve` requires a bearer token on every host, including
+localhost. HTTP uses `Authorization: Bearer <token>`; the WebSocket
+handshake uses `?token=`. A missing or bad token is HTTP 401. Desktop reads
+`~/.config/openshield/desktop.token` when the host is local and no token is
+saved. Pocket pairs by pasting the `POST /api/v1/pair` payload (master token
+only; 429 if rate-limited). A rejected token shows a re-pair banner.
+
 ## Develop
 
 ```sh

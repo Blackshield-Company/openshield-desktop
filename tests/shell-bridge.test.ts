@@ -6,7 +6,7 @@
  * mock service layer.
  */
 import { describe, expect, it } from "vitest";
-import { getAutostart, setAutostart, isTauriShell } from "$lib/services/shell";
+import { getAutostart, setAutostart, isTauriShell, readLocalToken } from "$lib/services/shell";
 
 describe("M6 shell bridge (outside Tauri)", () => {
   it("detects the missing shell", () => {
@@ -20,5 +20,11 @@ describe("M6 shell bridge (outside Tauri)", () => {
 
     const set = await setAutostart(true);
     expect(set.success).toBe(false);
+  });
+
+  it("read_local_token fails soft outside the shell", async () => {
+    const r = await readLocalToken();
+    expect(r.success).toBe(false);
+    if (!r.success) expect(r.error).toMatch(/desktop shell/i);
   });
 });

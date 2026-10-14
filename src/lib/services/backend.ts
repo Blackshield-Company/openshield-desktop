@@ -10,7 +10,9 @@
  * Hard rules honored here:
  *  - No LAN subnet scanning. Ever. 127.0.0.1 / configured host only.
  *  - 127.0.0.1/localhost hosts fast-fail (short timeout, mobile-safe).
- *  - LAN mode REQUIRES a bearer token on every request, WS included.
+ *  - A bearer token is required on every host, including localhost.
+ *    HTTP always sends Authorization: Bearer <token>. WS upgrades send ?token=.
+ *    A 401 raises needsPairing so the UI can re-pair.
  */
 
 import { browser } from "$app/environment";
@@ -29,6 +31,7 @@ import {
   mockGetModels,
 } from "./mock";
 import { loadConnection, persistConnection } from "./storage";
+import { isTauriShell, readLocalToken } from "./shell";
 
 // ── Types ────────────────────────────────────────────────────────────────
 
@@ -118,6 +121,10 @@ export interface ModelInfo {
 export const DEFAULT_HOST = "127.0.0.1";
 export const DEFAULT_PORT = 9310;
 
+export const UNAUTHORIZED_ERROR = "Unauthorized — re-pair with your OpenShield server";
+export const PAIR_RATE_LIMIT_ERROR = "Too many pairing attempts, wait a minute";
+export const TOKEN_REQUIRED_ERROR = "A bearer token is required.";
+
 const LOCAL_TIMEOUT_MS = 1500;
 
 function defaultConfig(): BackendConfig {
@@ -127,6 +134,15 @@ function defaultConfig(): BackendConfig {
 function isLocalHost(host: string): boolean {
   const h = host.trim().toLowerCase();
   return h === "127.0.0.1" || h === "localhost" || h === "::1" || h === "[::1]";
+}
+
+function isAndroidShell(): boolean {
+  return typeof navigator !== "undefined" && /android/i.test(navigator.userAgent);
+}
+
+/** Desktop Tauri only — Pocket has no read_local_token command. */
+function canReadDesktopToken(): boolean {
+  return isTauriShell() && !isAndroidShell();
 }
 
 // ── Stores ───────────────────────────────────────────────────────────────
@@ -153,6 +169,32 @@ export const connected = derived(status, ($s) => $s === "connected");
  */
 export const wsStatus = writable<ConnectionStatus>("disconnected");
 
+/**
+ * Set when the server rejects the bearer token (HTTP 401), or the chat
+ * socket drops right after a 401 health check. Cleared by a successful
+ * authorized response or a new saveConfig.
+ */
+export const needsPairing = writable<boolean>(false);
+
+/** Last /api/v1/health was 401 — a following WS close/fail is an auth failure. */
+let healthUnauthorized = false;
+
+function markUnauthorized(path: string): void {
+  needsPairing.set(true);
+  if (path === "/api/v1/health" || path.startsWith("/api/v1/health?")) {
+    healthUnauthorized = true;
+  }
+}
+
+function clearAuthFailure(): void {
+  needsPairing.set(false);
+  healthUnauthorized = false;
+}
+
+function markWsAuthFailure(): void {
+  if (healthUnauthorized) needsPairing.set(true);
+}
+
 export function saveConfig(next: BackendConfig): Result<null> {
   const host = next.host.trim();
   if (!host) return { success: false, error: "Host is required." };
@@ -162,20 +204,49 @@ export function saveConfig(next: BackendConfig): Result<null> {
   if (!Number.isInteger(next.port) || next.port < 1 || next.port > 65535) {
     return { success: false, error: "Port must be an integer between 1 and 65535." };
   }
-  if (!isLocalHost(host) && !next.token.trim()) {
-    return {
-      success: false,
-      error: "A bearer token is required for LAN (non-localhost) hosts.",
-    };
+  if (!next.token.trim()) {
+    return { success: false, error: TOKEN_REQUIRED_ERROR };
   }
   const clean: BackendConfig = { host, port: next.port, token: next.token.trim() };
   config.set(clean);
   hasSavedConnection.set(true);
+  clearAuthFailure();
   // Persist via tauri-plugin-store (Tauri) / localStorage (browser dev).
   void persistConnection(clean);
   // Kick a background reconnect with the new target — never blocks the UI.
   void checkHealth();
   return { success: true, data: null };
+}
+
+/**
+ * Desktop convenience: if the target is loopback and no token is saved, read
+ * ~/.config/openshield/desktop.token. No-op outside the desktop shell.
+ */
+export async function maybeFillLocalToken(): Promise<void> {
+  const c = get(config);
+  if (!isLocalHost(c.host) || c.token.trim() || !canReadDesktopToken()) return;
+  const read = await readLocalToken();
+  if (!read.success) return;
+  const token = read.data?.trim() ?? "";
+  if (!token) return;
+  const next: BackendConfig = { ...c, token };
+  config.set(next);
+  hasSavedConnection.set(true);
+  void persistConnection(next);
+}
+
+/** Banner action: load the desktop token file and save it as the bearer token. */
+export async function useLocalToken(): Promise<Result<null>> {
+  if (!canReadDesktopToken()) {
+    return { success: false, error: "Local token is only available in the desktop app." };
+  }
+  const read = await readLocalToken();
+  if (!read.success) return { success: false, error: read.error };
+  const token = read.data?.trim() ?? "";
+  if (!token) {
+    return { success: false, error: "No token found in ~/.config/openshield/desktop.token." };
+  }
+  return saveConfig({ ...get(config), token });
 }
 
 // ── HTTP helpers ─────────────────────────────────────────────────────────
@@ -189,23 +260,32 @@ function baseWs(c: BackendConfig): string {
 }
 
 function authHeaders(c: BackendConfig): Record<string, string> {
-  const headers: Record<string, string> = { Accept: "application/json" };
-  if (c.token) headers.Authorization = `Bearer ${c.token}`;
-  return headers;
+  return {
+    Accept: "application/json",
+    Authorization: `Bearer ${c.token}`,
+  };
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<Result<T>> {
+export async function request<T>(path: string, init?: RequestInit): Promise<Result<T>> {
   const c = get(config);
   try {
     const res = await fetch(`${baseHttp(c)}${path}`, {
       ...init,
-      headers: { ...authHeaders(c), ...(init?.headers ?? {}) },
+      headers: { ...(init?.headers ?? {}), ...authHeaders(c) },
       // Fast-fail on loopback — never leave the user staring at a spinner.
       signal: AbortSignal.timeout(isLocalHost(c.host) ? LOCAL_TIMEOUT_MS : 8000),
     });
+    if (res.status === 401) {
+      markUnauthorized(path);
+      return { success: false, error: UNAUTHORIZED_ERROR };
+    }
+    if (res.status === 429) {
+      return { success: false, error: PAIR_RATE_LIMIT_ERROR };
+    }
     if (!res.ok) {
       return { success: false, error: `HTTP ${res.status} from ${path}` };
     }
+    clearAuthFailure();
     const data = (await res.json()) as T;
     return { success: true, data };
   } catch (e) {
@@ -223,6 +303,7 @@ export async function checkHealth(): Promise<Result<HealthReport>> {
   if (get(mockMode)) {
     status.set("connected");
     lastError.set(null);
+    clearAuthFailure();
     return { success: true, data: mockHealth() };
   }
   const r = await request<HealthReport>("/api/v1/health");
@@ -349,12 +430,15 @@ export function openSocket(
   const c = get(config);
   let ws: WebSocket | null = null;
   try {
-    const url = `${baseWs(c)}${path}`;
-    const sep = url.includes("?") ? "&" : "?";
-    const tokenSuffix = c.token ? `${sep}token=${encodeURIComponent(c.token)}` : "";
-    ws = new WebSocket(`${url}${tokenSuffix}`);
+    const sep = path.includes("?") ? "&" : "?";
+    const url = `${baseWs(c)}${path}${sep}token=${encodeURIComponent(c.token)}`;
+    ws = new WebSocket(url);
     ws.onopen = () => handlers?.onOpen?.();
-    ws.onclose = () => handlers?.onClose?.();
+    ws.onerror = () => markWsAuthFailure();
+    ws.onclose = () => {
+      markWsAuthFailure();
+      handlers?.onClose?.();
+    };
     ws.onmessage = (ev) => {
       try {
         onEvent(JSON.parse(String(ev.data)) as WsEnvelope);
@@ -368,6 +452,7 @@ export function openSocket(
   if (!ws) {
     // Construction failed synchronously — report as a close so the caller's
     // reconnect/backoff logic kicks in instead of stalling on "connecting".
+    markWsAuthFailure();
     handlers?.onClose?.();
   }
   return {
@@ -398,7 +483,8 @@ let booted = false;
  *
  * Storage hydration is async (plugin-store), so it runs first: a saved
  * pairing record replaces the defaults, THEN the health probe fires against
- * the real target.
+ * the real target. A local host with an empty token tries the desktop token
+ * file before that probe.
  */
 export function initBackend(): void {
   if (!browser || booted) return;
@@ -409,6 +495,7 @@ export function initBackend(): void {
       config.set(stored);
       hasSavedConnection.set(true);
     }
+    await maybeFillLocalToken();
     void checkHealth();
   })();
   // Gentle auto-retry while disconnected — keeps the banner honest.

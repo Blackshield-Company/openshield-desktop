@@ -90,9 +90,13 @@ New CLI subcommand + hardened API surface. Existing endpoints stay; additions:
 | POST   | /api/v1/pair | Issue a short-lived pairing token + payload for QR |
 | GET    | /api/v1/perf | Per-session perf (tokens/sec, cost) — TUI already tracks this |
 
-**Auth:** bearer token. Local mode (127.0.0.1) accepts the token from
-`~/.config/openshield/desktop.token` (chmod 600, auto-generated). LAN mode
-(0.0.0.0) REQUIRES the token on every request, WS included.
+**Auth:** bearer token on every request, including localhost / 127.0.0.1
+(`openshield serve` 1.1.1 — the token is not optional on loopback). A missing
+or bad token is HTTP 401 JSON. HTTP sends `Authorization: Bearer <token>`;
+WebSocket upgrades send `?token=`. Desktop reads
+`~/.config/openshield/desktop.token` (chmod 600, auto-generated) when the
+host is local and no token is saved. Pocket must pair: only the master token
+may call `POST /api/v1/pair`, which returns 429 when rate-limited.
 
 **Config additions (config.toml):**
 
@@ -250,9 +254,10 @@ branding workflow. Credit line: "Part of the Blackshield Company."
 
 - All remote surfaces inherit OpenShield's L1–L4 engine: sandbox paths,
   guardrail risk assessment, PII redaction — nothing bypasses it.
-- Token auth mandatory in LAN mode; token never leaves the pairing payload
-  unencrypted (stored via Tauri stronghold/keyring on desktop and Android
-  keystore-backed storage on Pocket).
+- Token auth is mandatory on every bind, including loopback; the token never
+  leaves the pairing payload unencrypted (stored via Tauri stronghold/keyring
+  on desktop and Android keystore-backed storage on Pocket). Desktop may read
+  `~/.config/openshield/desktop.token`; that file is not a localhost exemption.
 - `lan_mode` defaults to **false**; binding 0.0.0.0 without it refuses to
   start (doctor warns).
 - Approval timeout defaults to deny. Sudo/sensitive-path/PII checks are never
@@ -264,7 +269,7 @@ branding workflow. Credit line: "Part of the Blackshield Company."
 
 | Milestone | Deliverable | Exit criteria |
 |-----------|-------------|---------------|
-| M0 — Serve hardening | `openshield serve` subcommand, token auth, `/api/v1/models`, pair endpoint | curl smoke: health, chat round-trip, pair token issues, LAN bind refuses without token |
+| M0 — Serve hardening | `openshield serve` subcommand, bearer token on every host including loopback, `/api/v1/models`, pair endpoint | curl smoke: health, chat round-trip, pair token issues, missing token is 401 even on localhost |
 | M1 — Desktop shell | Flutter desktop: nav, themes, sessions list, doctor panel | `flutter run -d linux`, analyze clean |
 | M2 — Chat streaming | WS chat with tool cards + perf footer | live token stream vs `openshield` TUI parity |
 | M3 — Approvals | WS approval_req + approvals screen, gate blocks/resumes | risky tool call pauses, approve from GUI, audit logged |
