@@ -4,6 +4,7 @@
  * M6 (design §8.1): desktop-only shell features that CANNOT go through
  * `openshield serve` because they belong to the local OS, not the backend:
  *  - autostart: systemd --user unit toggle (Linux)
+ *  - local serve token: read ~/.config/openshield/desktop.token (desktop)
  *
  * The backend client (backend.ts) stays pure fetch/WS — this module is the
  * ONLY place the frontend touches Tauri IPC, and only for shell features.
@@ -46,4 +47,9 @@ export async function getAutostart(): Promise<Result<AutostartStatus>> {
 
 export async function setAutostart(enabled: boolean): Promise<Result<AutostartStatus>> {
   return call<AutostartStatus>("set_autostart", { enabled });
+}
+
+/** Desktop shell only. Rust returns None when the file is missing or empty. */
+export async function readLocalToken(): Promise<Result<string | null>> {
+  return call<string | null>("read_local_token");
 }

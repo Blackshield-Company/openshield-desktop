@@ -20,10 +20,7 @@
     if (!host.trim()) return "Host is required.";
     if (!Number.isInteger(Number(port)) || Number(port) < 1 || Number(port) > 65535)
       return "Port must be an integer between 1 and 65535.";
-    const h = host.trim().toLowerCase();
-    const isLocal = h === "127.0.0.1" || h === "localhost" || h === "::1";
-    if (!isLocal && !token.trim())
-      return "A bearer token is required for LAN (non-localhost) hosts.";
+    if (!token.trim()) return "A bearer token is required.";
     return null;
   }
 
@@ -161,8 +158,10 @@
   <section class="card">
     <h2>Backend connection</h2>
     <p class="hint">
-      Target <code>openshield serve</code> (default 127.0.0.1:9310). LAN hosts require a bearer
-      token — no exceptions, per the security model.
+      Target <code>openshield serve</code> (default 127.0.0.1:9310). A bearer token is
+      required on every host, including localhost — it is not optional on loopback.
+      Desktop can load <code>~/.config/openshield/desktop.token</code>; Pocket must paste a
+      pairing payload.
     </p>
 
     <label>
@@ -186,7 +185,7 @@
       <input
         bind:value={token}
         type="password"
-        placeholder="required for LAN hosts"
+        placeholder="required"
         autocomplete="off"
         spellcheck="false"
       />
@@ -285,7 +284,8 @@
   <section class="card">
     <h2>Pair device</h2>
     <p class="hint">
-      Issue a short-lived pairing token for OpenShield Pocket (mobile). The payload below is what
+      Issue a short-lived pairing token for OpenShield Pocket (mobile). Only the master
+      token may call this; too many attempts must wait a minute. The payload below is what
       Pocket pastes into Settings → "Paste pairing payload"; QR rendering on this side is deferred
       until a scanner plugin is validated on-device.
     </p>

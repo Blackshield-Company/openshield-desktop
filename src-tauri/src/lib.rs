@@ -18,6 +18,9 @@
 //!    Settings → Desktop. Linux-only; other platforms report unsupported.
 //!    Both tray and autostart are `cfg(desktop)`-gated — Pocket (Android)
 //!    compiles neither.
+//!  - `read_local_token` (desktop only) reads
+//!    `~/.config/openshield/desktop.token` so the GUI can attach the bearer
+//!    token `openshield serve` requires on every host, including loopback.
 
 use tauri::Manager;
 
@@ -153,6 +156,20 @@ fn set_autostart(enabled: bool) -> Result<serde_json::Value, String> {
     set_autostart_impl(enabled)
 }
 
+// ── Local serve token (desktop only) ─────────────────────────────────────
+
+#[cfg(desktop)]
+#[tauri::command]
+fn read_local_token() -> Option<String> {
+    let home = std::env::var("HOME").ok().filter(|h| !h.is_empty())?;
+    let path = std::path::PathBuf::from(home)
+        .join(".config")
+        .join("openshield")
+        .join("desktop.token");
+    let token = std::fs::read_to_string(path).ok()?.trim().to_string();
+    if token.is_empty() { None } else { Some(token) }
+}
+
 // ── Tray (desktop only) ───────────────────────────────────────────────────
 
 #[cfg(desktop)]
@@ -225,8 +242,17 @@ fn show_main_window(app: &tauri::AppHandle) {
 pub fn run() {
     let builder = tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .plugin(tauri_plugin_store::Builder::default().build())
-        .invoke_handler(tauri::generate_handler![autostart_status, set_autostart]);
+        .plugin(tauri_plugin_store::Builder::default().build());
+
+    #[cfg(desktop)]
+    let builder = builder.invoke_handler(tauri::generate_handler![
+        autostart_status,
+        set_autostart,
+        read_local_token
+    ]);
+
+    #[cfg(not(desktop))]
+    let builder = builder.invoke_handler(tauri::generate_handler![autostart_status, set_autostart]);
 
     #[cfg(desktop)]
     let builder = builder

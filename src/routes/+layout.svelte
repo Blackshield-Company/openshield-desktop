@@ -2,8 +2,10 @@
   import "../app.css";
   import { onMount } from "svelte";
   import { page } from "$app/stores";
-  import { status, lastError, initBackend, config, wsStatus } from "$lib/services/backend";
+  import { goto } from "$app/navigation";
+  import { status, lastError, initBackend, config, wsStatus, needsPairing, useLocalToken } from "$lib/services/backend";
   import { initChat, retryChatStream } from "$lib/services/chat";
+  import { isTauriShell } from "$lib/services/shell";
   import { initApprovals, approvalBadge, approvalToasts, dismissToast } from "$lib/services/approvals";
   import { theme, THEMES } from "$lib/themes";
 
@@ -23,12 +25,28 @@
     { path: "/settings", label: "Settings", icon: "⚙" },
   ];
 
+  let desktopShell = false;
+  let usingLocal = false;
+  let localTokenError: string | null = null;
+
   // Boot the backend connection in the background — first render never waits.
   onMount(() => {
+    desktopShell = isTauriShell() && !/android/i.test(navigator.userAgent);
     initBackend();
     initChat();
     initApprovals();
   });
+
+  async function onUseLocalToken() {
+    usingLocal = true;
+    localTokenError = null;
+    try {
+      const r = await useLocalToken();
+      if (!r.success) localTokenError = r.error;
+    } finally {
+      usingLocal = false;
+    }
+  }
 
   $: currentPath = $page.url.pathname;
   $: isActive = (p: string) =>
@@ -75,7 +93,22 @@
   </nav>
 
   <div class="main">
-    {#if $status !== "connected"}
+    {#if $needsPairing}
+      <div class="banner auth" role="alert">
+        <span>OpenShield server rejected the token. Re-pair to continue.</span>
+        {#if localTokenError}
+          <span class="banner-detail">{localTokenError}</span>
+        {/if}
+        <span class="banner-actions">
+          <button type="button" onclick={() => void goto("/settings")}>Re-pair</button>
+          {#if desktopShell}
+            <button type="button" onclick={() => void onUseLocalToken()} disabled={usingLocal}>
+              {usingLocal ? "Reading…" : "Use local token"}
+            </button>
+          {/if}
+        </span>
+      </div>
+    {:else if $status !== "connected"}
       <!-- Hard rule: disconnected = tappable banner OPENING connection settings.
            The retry lives on the settings screen (Save & connect / Retry). -->
       <a class="banner" class:connecting={$status === "connecting"} href="/settings">
@@ -330,6 +363,35 @@
 
   .banner.connecting {
     color: var(--warn);
+  }
+
+  .banner.auth {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 8px 12px;
+    border-bottom-color: var(--err);
+  }
+
+  .banner-actions {
+    display: inline-flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .banner.auth button {
+    padding: 4px 10px;
+    font-size: 12px;
+    background: var(--bg-elevated);
+    color: var(--text-strong);
+    border: 1px solid var(--border-strong);
+  }
+
+  .banner-detail {
+    color: var(--err);
+    font-size: 12px;
   }
 
   /* ── Bottom nav (narrow) ── */
