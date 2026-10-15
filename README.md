@@ -1,3 +1,5 @@
+![openshield-desktop](.github/preview.png)
+
 # OpenShield Desktop ⚫🛡
 
 The GUI companion for the [OpenShield](../openshield) AI coding harness — plus
