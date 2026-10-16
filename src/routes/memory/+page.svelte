@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Icon from "$lib/components/Icon.svelte";
   /**
    * /memory — memory store browser (M5).
    *
@@ -51,7 +52,7 @@
 
 <div class="memory">
   <header class="page-head">
-    <h1>🧠 Memory</h1>
+    <h1>Memory</h1>
     {#if $memoryLoaded}
       <span class="count">{ $memoryEntries.length } { $memoryEntries.length === 1 ? "entry" : "entries" }</span>
     {/if}
@@ -70,7 +71,7 @@
 
   {#if $memoryError}
     <div class="err-banner" role="alert">
-      <span>⚠ {$memoryError}</span>
+      <span><Icon name="alert" size={15} /> {$memoryError}</span>
       <button type="button" class="dismiss" onclick={dismissError} aria-label="Dismiss error">✕</button>
     </div>
   {/if}
@@ -78,7 +79,7 @@
   <div class="results">
     {#if $memoryLoaded && $memoryEntries.length === 0 && !$memoryLoading}
       <div class="empty" data-testid="memory-empty">
-        <div class="glyph" aria-hidden="true">🧠</div>
+        <div class="glyph"><Icon name="memory" size={36} /></div>
         <h2>No memories matched.</h2>
         <p>{query.trim() ? `Nothing in the store matches “${query.trim()}”.` : "The memory store is empty."}</p>
       </div>
@@ -87,7 +88,7 @@
         <article class="hit" data-testid="memory-card">
           <p class="snippet">{entry.snippet}</p>
           <footer>
-            {#if entry.session}<span class="tag" title="Session">🗂 {entry.session}</span>{/if}
+            {#if entry.session}<span class="tag" title="Session"><Icon name="sessions" size={12} /> {entry.session}</span>{/if}
             {#if entry.project}<span class="tag" title="Project">📁 {entry.project}</span>{/if}
             {#if entry.timestamp}<time datetime={entry.timestamp}>🕒 {fmtTime(entry.timestamp)}</time>{/if}
             {#if entry.score !== null}

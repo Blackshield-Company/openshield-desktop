@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Icon from "$lib/components/Icon.svelte";
   /**
    * MessageBubble — one chat message (user or assistant), a column of text
    * and tool-call blocks. Blocks render with stable index keys: a streaming
@@ -24,7 +25,7 @@
         <ApprovalInline approvalId={block.approvalId} />
       {:else}
         <div class="text-block" class:reasoning={block.reasoning === true}>
-          {#if block.reasoning === true}<span class="think-tag">🧠 reasoning</span>{/if}
+          {#if block.reasoning === true}<span class="think-tag"><Icon name="reasoning" size={12} /> reasoning</span>{/if}
           <RichText text={block.text} />
           {#if streaming && message.role === "assistant" && i === message.blocks.length - 1}
             <span class="cursor" aria-hidden="true">▍</span>

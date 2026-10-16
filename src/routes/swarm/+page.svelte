@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Icon from "$lib/components/Icon.svelte";
   /**
    * /swarm — agent pool monitor (M5).
    *
@@ -66,7 +67,7 @@
 
 <div class="swarm">
   <header class="page-head">
-    <h1>🐝 Swarm</h1>
+    <h1>Swarm</h1>
     {#if $swarm}
       <span class="pill" data-testid="swarm-status" data-tone={statusTone($swarm.status)}>{$swarm.status}</span>
       {#if $swarm.round !== null && engineRunning}<span class="round-chip">round {$swarm.round}</span>{/if}
@@ -92,14 +93,14 @@
 
   {#if $swarmError}
     <div class="err-banner" role="alert">
-      <span>⚠ {$swarmError}</span>
+      <span><Icon name="alert" size={15} /> {$swarmError}</span>
       <button type="button" class="dismiss" onclick={dismissError} aria-label="Dismiss error">✕</button>
     </div>
   {/if}
 
   {#if !$connected}
     <div class="empty">
-      <div class="glyph" aria-hidden="true">🐝</div>
+      <div class="glyph"><Icon name="swarm" size={36} /></div>
       <h2>Swarm is out of reach.</h2>
       <p>The monitor polls <code>GET /api/v1/swarm</code> — connect to an <code>openshield serve</code> backend (or flip on Demo mode in Settings) to watch the pool.</p>
     </div>

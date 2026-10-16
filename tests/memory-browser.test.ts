@@ -37,7 +37,7 @@ describe("M5 memory browser", () => {
       expect(cards().length).toBe(total);
       expect(get(memory.memoryLoaded)).toBe(true);
       // Cards carry session/project metadata + a relevance score.
-      expect(cards()[0].textContent).toContain("🗂");
+      expect(cards()[0].querySelector('.tag[title="Session"]')).not.toBeNull();
       expect(cards()[0].textContent).toMatch(/\d+%/);
 
       const box = container.querySelector('input[type="search"]');

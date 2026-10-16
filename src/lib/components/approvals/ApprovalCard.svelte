@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Icon from "$lib/components/Icon.svelte";
   /**
    * ApprovalCard — one pending security-gate request. Tool name, risk badge
    * (high/critical in gate-red), pretty-printed args, owning session, and a
@@ -48,7 +49,7 @@
 
 <div class="approval-card" class:inline class:expired data-testid="approval-card">
   <div class="head">
-    <span class="tool">🛡 {approval.tool}</span>
+    <span class="tool"><Icon name="tool" size={14} /> {approval.tool}</span>
     <span class="risk" data-risk={approval.risk}>{approval.risk}</span>
     <span class="sess" title={approval.session}>{shortSession(approval.session)}</span>
     <span class="clock" class:urgent={remaining < 15_000} title="Deny-by-default timeout">
@@ -61,7 +62,7 @@
   {/if}
 
   {#if failed}
-    <div class="fail" role="alert">⚠ {failed}</div>
+    <div class="fail" role="alert"><Icon name="alert" size={14} /> {failed}</div>
   {/if}
 
   {#if expired}

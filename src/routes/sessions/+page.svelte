@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Icon from "$lib/components/Icon.svelte";
   /**
    * /sessions — list, resume, and start sessions (M2).
    *
@@ -73,7 +74,7 @@
 </svelte:head>
 
 <header class="page-head">
-  <h1>🗂 Sessions</h1>
+  <h1>Sessions</h1>
   <span class="spacer"></span>
   <button type="button" class="primary" onclick={() => void onNew()} disabled={busyId !== null}>
     ＋ New session
@@ -84,14 +85,14 @@
 </header>
 
 {#if error}
-  <div class="err-banner" role="alert">⚠ {error}</div>
+  <div class="err-banner" role="alert"><Icon name="alert" size={15} /> {error}</div>
 {/if}
 
 {#if $sessionsLoading && $sessions.length === 0}
   <p class="hint">Loading sessions…</p>
 {:else if $sessions.length === 0}
   <div class="empty">
-    <div class="glyph" aria-hidden="true">🗂</div>
+    <div class="glyph"><Icon name="sessions" size={36} /></div>
     <h2>No sessions yet</h2>
     <p>Start one from Chat — it lands here once the backend has it.</p>
     <button type="button" class="primary" onclick={() => void onNew()}>Open a new session</button>

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Icon from "$lib/components/Icon.svelte";
   /**
    * /approvals — the approval inbox (M3).
    *
@@ -64,12 +65,12 @@
 
 <div class="approvals">
   <header class="page-head">
-    <h1>🛡 Approvals</h1>
+    <h1>Approvals</h1>
     {#if $approvalBadge > 0}<span class="count">{$approvalBadge} pending</span>{/if}
     <span class="spacer"></span>
     {#if $wsStatus !== "connected"}
       <span class="poll-note" title="The WS stream is down; decisions still POST, and the inbox re-syncs every 10s.">
-        ⟳ polling fallback (10s)
+        <Icon name="refresh" size={13} /> polling fallback (10s)
       </span>
     {/if}
     <button type="button" onclick={onRefresh} disabled={refreshing}>
@@ -79,7 +80,7 @@
 
   {#if $approvalError}
     <div class="err-banner" role="alert">
-      <span>⚠ {$approvalError}</span>
+      <span><Icon name="alert" size={15} /> {$approvalError}</span>
       <button type="button" class="dismiss" onclick={dismissError} aria-label="Dismiss error">✕</button>
     </div>
   {/if}
@@ -87,7 +88,7 @@
   <section class="inbox" aria-label="Pending approvals">
     {#if $pendingApprovals.length === 0}
       <div class="empty">
-        <div class="glyph" aria-hidden="true">🛡</div>
+        <div class="glyph"><Icon name="approvals" size={36} /></div>
         <h2>Inbox clear.</h2>
         <p>
           When the guardrail gate pauses a risky tool call, it lands here with
@@ -110,7 +111,7 @@
       <ul>
         {#each $approvalHistory as h (h.id)}
           <li class:rejected={h.decision === "rejected" || h.decision === "expired"}>
-            <span class="h-tool">🛡 {h.tool}</span>
+            <span class="h-tool"><Icon name="tool" size={13} /> {h.tool}</span>
             <span class="h-risk" data-risk={h.risk}>{h.risk}</span>
             <span class="h-decision" data-decision={h.decision}>{decisionLabel(h.decision)}</span>
             <span class="h-when">{timeAgo(h.resolvedAt)}</span>

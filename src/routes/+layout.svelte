@@ -8,6 +8,8 @@
   import { isTauriShell } from "$lib/services/shell";
   import { initApprovals, approvalBadge, approvalToasts, dismissToast } from "$lib/services/approvals";
   import { theme, THEMES } from "$lib/themes";
+  import Icon from "$lib/components/Icon.svelte";
+  import ShieldMark from "$lib/components/ShieldMark.svelte";
 
   interface NavRoute {
     path: string;
@@ -16,13 +18,13 @@
   }
 
   const NAV: NavRoute[] = [
-    { path: "/chat", label: "Chat", icon: "💬" },
-    { path: "/sessions", label: "Sessions", icon: "🗂" },
-    { path: "/approvals", label: "Approvals", icon: "🛡" },
-    { path: "/swarm", label: "Swarm", icon: "🐝" },
-    { path: "/memory", label: "Memory", icon: "🧠" },
-    { path: "/doctor", label: "Doctor", icon: "🩺" },
-    { path: "/settings", label: "Settings", icon: "⚙" },
+    { path: "/chat", label: "Chat", icon: "chat" },
+    { path: "/sessions", label: "Sessions", icon: "sessions" },
+    { path: "/approvals", label: "Approvals", icon: "approvals" },
+    { path: "/swarm", label: "Swarm", icon: "swarm" },
+    { path: "/memory", label: "Memory", icon: "memory" },
+    { path: "/doctor", label: "Doctor", icon: "doctor" },
+    { path: "/settings", label: "Settings", icon: "settings" },
   ];
 
   let desktopShell = false;
@@ -57,7 +59,7 @@
   <!-- Wide layout: left sidebar rail -->
   <nav class="rail" aria-label="Primary">
     <div class="brand">
-      <span class="shield">🛡</span>
+      <ShieldMark size={30} />
       <div class="brand-text">
         <strong>OpenShield</strong>
         <small>{$config.host}:{$config.port}</small>
@@ -67,7 +69,7 @@
       {#each NAV as r}
         <li>
           <a href={r.path} class:active={isActive(r.path)}>
-            <span class="icon" aria-hidden="true">{r.icon}</span>
+            <span class="icon"><Icon name={r.icon} /></span>
             <span>{r.label}</span>
             {#if r.path === "/approvals" && $approvalBadge > 0}
               <span class="badge" aria-label="{$approvalBadge} pending approvals">{$approvalBadge}</span>
@@ -77,16 +79,20 @@
       {/each}
     </ul>
     <div class="rail-footer">
-      <div class="theme-dots" aria-label="Theme">
+      <div class="theme-switch" role="radiogroup" aria-labelledby="theme-label">
+        <span id="theme-label" class="theme-label">Theme</span>
         {#each THEMES as t}
           <button
-            class="dot"
+            type="button"
+            role="radio"
+            aria-checked={$theme === t.id}
+            class="theme-opt"
             class:selected={$theme === t.id}
-            style:background={t.swatches[2]}
-            title={t.label}
-            aria-label={`Switch to ${t.label} theme`}
             onclick={() => theme.set(t.id)}
-          ></button>
+          >
+            <span class="swatch" style:background={t.swatches[2]}></span>
+            {t.label}
+          </button>
         {/each}
       </div>
     </div>
@@ -109,16 +115,22 @@
         </span>
       </div>
     {:else if $status !== "connected"}
-      <!-- Hard rule: disconnected = tappable banner OPENING connection settings.
-           The retry lives on the settings screen (Save & connect / Retry). -->
-      <a class="banner" class:connecting={$status === "connecting"} href="/settings">
-        {#if $status === "connecting"}
-          ⟳ Connecting to openshield serve…
-        {:else}
-          ⚠ Disconnected from {$config.host}:{$config.port}
-          {#if $lastError}— {$lastError}{/if} — tap to open connection settings
-        {/if}
-      </a>
+      <!-- Disconnected: a quiet status strip, not an alarm. The chat page
+           shows the "Connect or try Demo" first-run card; this strip keeps
+           the connection settings one click away on every page. -->
+      <div class="status-strip" class:connecting={$status === "connecting"} role="status">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span class="status-text">
+          {#if $status === "connecting"}
+            Connecting to openshield serve…
+          {:else}
+            Not connected to openshield serve
+            {#if $lastError}<span class="status-detail">· {$lastError}</span>{/if}
+          {/if}
+        </span>
+        <code class="status-host">{$config.host}:{$config.port}</code>
+        <a class="status-action" href="/settings">Open settings</a>
+      </div>
     {:else if $wsStatus !== "connected"}
       <!-- REST is fine but the chat stream is down — the chat service is
            already backing off and retrying; the tap forces an immediate retry. -->
@@ -126,12 +138,12 @@
         class="banner"
         class:connecting={$wsStatus === "connecting"}
         onclick={retryChatStream}
-        title="Tap to retry the chat stream now"
+        title="Retry the chat stream now"
       >
         {#if $wsStatus === "connecting"}
-          ⟳ Reconnecting chat stream ({$config.host}:{$config.port})…
+          <Icon name="refresh" size={14} /> Reconnecting chat stream ({$config.host}:{$config.port})…
         {:else}
-          ⚠ Chat stream disconnected — tap to retry
+          <Icon name="alert" size={14} /> Chat stream disconnected. Retry now
         {/if}
       </button>
     {/if}
@@ -146,7 +158,7 @@
     <nav class="bottom" aria-label="Primary">
       {#each NAV as r}
         <a href={r.path} class:active={isActive(r.path)}>
-          <span class="icon" aria-hidden="true">{r.icon}</span>
+          <span class="icon"><Icon name={r.icon} /></span>
           {#if r.path === "/approvals" && $approvalBadge > 0}
             <span class="badge" aria-label="{$approvalBadge} pending approvals">{$approvalBadge}</span>
           {/if}
@@ -164,7 +176,7 @@
         <div class="toast" data-testid="approval-toast">
           <a class="toast-body" href="/approvals">
             <strong>Approval needed: {t.tool}</strong>
-            <small>risk {t.risk}{t.session ? ` · ${t.session.slice(0, 12)}` : ""} — tap to review</small>
+            <small>risk {t.risk}{t.session ? ` · ${t.session.slice(0, 12)}` : ""} · review</small>
           </a>
           <button type="button" class="toast-dismiss" onclick={() => dismissToast(t.id)} aria-label="Dismiss">
             ✕
@@ -207,10 +219,6 @@
     padding: 0 8px;
   }
 
-  .shield {
-    font-size: 22px;
-    line-height: 1;
-  }
 
   .brand-text {
     display: flex;
@@ -219,7 +227,10 @@
 
   .brand-text strong {
     color: var(--text-strong);
-    letter-spacing: 0.02em;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 16px;
+    letter-spacing: 0.06em;
   }
 
   .brand-text small {
@@ -295,22 +306,51 @@
     padding: 0 8px;
   }
 
-  .theme-dots {
+  .theme-switch {
     display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .theme-label {
+    color: var(--text-faint);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .theme-opt {
+    display: flex;
+    align-items: center;
     gap: 8px;
+    padding: 5px 8px;
+    font-size: 12.5px;
+    text-align: left;
+    background: transparent;
+    color: var(--text);
+    border-color: transparent;
   }
 
-  .dot {
-    width: 18px;
-    height: 18px;
+  .theme-opt.selected {
+    background: var(--surface-hover);
+    border-color: var(--border);
+    color: var(--text-strong);
+  }
+
+  .swatch {
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
-    padding: 0;
-    border: 2px solid var(--border-strong);
+    flex: none;
   }
 
-  .dot.selected {
-    border-color: var(--text-strong);
-    box-shadow: 0 0 0 2px var(--accent-soft);
+  .rail .icon,
+  .bottom .icon {
+    display: inline-flex;
+  }
+
+  .rail a.active .icon {
+    color: var(--accent);
   }
 
   /* ── Main column ── */
@@ -363,6 +403,77 @@
 
   .banner.connecting {
     color: var(--warn);
+  }
+
+  .status-strip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 14px 20px 0;
+    padding: 8px 8px 8px 14px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-strong);
+    font-size: 13px;
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--warn);
+    flex: none;
+  }
+
+  .status-strip.connecting .status-dot {
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    50% {
+      opacity: 0.3;
+    }
+  }
+
+  .status-text {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .status-detail {
+    color: var(--text-faint);
+  }
+
+  .status-host {
+    color: var(--text-faint);
+    font-size: 12px;
+  }
+
+  .status-action {
+    padding: 5px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text-strong);
+    font-weight: 600;
+    font-size: 12.5px;
+  }
+
+  .status-action:hover {
+    background: var(--surface-hover);
+  }
+
+  @media (max-width: 759px) {
+    .status-strip {
+      margin: 10px 14px 0;
+    }
+    .status-host {
+      display: none;
+    }
   }
 
   .banner.auth {
@@ -425,9 +536,6 @@
     background: var(--accent-soft);
   }
 
-  .bottom .icon {
-    font-size: 16px;
-  }
 
   @media (min-width: 760px) {
     .bottom {

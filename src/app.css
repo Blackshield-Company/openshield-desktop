@@ -4,41 +4,46 @@
  * Every color in the app flows through these CSS variables; a theme is just a
  * [data-theme] attribute swap on <html>. Flagship: Blackshield. Secondary:
  * Synthwave '84. Part of the Blackshield Company.
+ *
+ * Blackshield values come from the shared brand tokens (Black Steel):
+ * src/lib/brand/tokens.css is a copy of docs/brand/tokens.css.
  */
 
+@import "./lib/brand/tokens.css";
+
 :root {
-  --font-mono: "JetBrains Mono", "Cascadia Code", "Fira Code", ui-monospace,
-    Menlo, Consolas, monospace;
-  --font-ui: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: var(--os-font-mono);
+  --font-ui: var(--os-font-ui);
+  --font-display: var(--os-font-display);
   --radius: 6px;
   --nav-rail-width: 216px;
   --nav-bottom-height: 56px;
   --wide-breakpoint: 760px;
 }
 
-/* ── Blackshield (flagship) ─────────────────────────────────────────── */
+/* ── Blackshield (flagship, Black Steel) ─────────────────────────────── */
 :root,
 [data-theme="blackshield"] {
-  --bg: #101014;
-  --bg-elevated: #17171d;
-  --bg-inset: #0b0b0e;
-  --surface: #1c1c23;
-  --surface-hover: #24242d;
-  --border: #2b2b34;
-  --border-strong: #3a3a46;
+  --bg: var(--os-void); /* #0E0E12 */
+  --bg-elevated: var(--os-iron); /* #17171D */
+  --bg-inset: #0a0a0d;
+  --surface: var(--os-iron);
+  --surface-hover: var(--os-plate); /* #22222A */
+  --border: var(--os-edge); /* #34343F */
+  --border-strong: #4a4a57;
 
-  --text: #8f959c; /* steel */
-  --text-strong: #d8d3c8; /* bone */
-  --text-faint: #5a5f66;
+  --text: var(--os-text-muted); /* #C3C7CC — body, ~11:1 on void */
+  --text-strong: var(--os-bone); /* #E4DED2 */
+  --text-faint: var(--os-steel); /* #9AA0A8 — ~7:1 on void */
 
-  --accent: #c1121f; /* blood */
-  --accent-hover: #e01e2b;
-  --accent-soft: rgba(193, 18, 31, 0.16);
-  --accent-contrast: #f5f0e6;
+  --accent: var(--os-blood); /* #C1121F */
+  --accent-hover: var(--os-blood-hi); /* #E0303C */
+  --accent-soft: rgba(193, 18, 31, 0.14);
+  --accent-contrast: #ffffff;
 
-  --ok: #4e9a51;
-  --warn: #c9a227;
-  --err: #c1121f;
+  --ok: var(--os-moss);
+  --warn: var(--os-ember);
+  --err: var(--os-blood-hi);
 
   color-scheme: dark;
 }
@@ -185,4 +190,16 @@ pre {
 ::-webkit-scrollbar-thumb {
   background: var(--border-strong);
   border-radius: 5px;
+}
+
+/* Checkboxes and radios keep their native glyph (the global
+ * appearance: none above would hide the checked state). */
+input[type="checkbox"],
+input[type="radio"] {
+  -webkit-appearance: auto;
+  appearance: auto;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  accent-color: var(--accent);
 }
