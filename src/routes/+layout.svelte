@@ -10,6 +10,7 @@
   import { theme, THEMES } from "$lib/themes";
   import Icon from "$lib/components/Icon.svelte";
   import ShieldMark from "$lib/components/ShieldMark.svelte";
+  import KnightSprite from "$lib/components/KnightSprite.svelte";
 
   interface NavRoute {
     path: string;
@@ -119,7 +120,7 @@
            shows the "Connect or try Demo" first-run card; this strip keeps
            the connection settings one click away on every page. -->
       <div class="status-strip" class:connecting={$status === "connecting"} role="status">
-        <span class="status-dot" aria-hidden="true"></span>
+        <KnightSprite state={$status === "connecting" ? "thinking" : "error"} size={26} />
         <span class="status-text">
           {#if $status === "connecting"}
             Connecting to openshield serve…
@@ -416,24 +417,6 @@
     border-radius: var(--radius);
     color: var(--text-strong);
     font-size: 13px;
-  }
-
-  .status-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--warn);
-    flex: none;
-  }
-
-  .status-strip.connecting .status-dot {
-    animation: pulse 1.2s ease-in-out infinite;
-  }
-
-  @keyframes pulse {
-    50% {
-      opacity: 0.3;
-    }
   }
 
   .status-text {
