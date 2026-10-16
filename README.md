@@ -1,11 +1,18 @@
-![openshield-desktop](.github/preview.png)
+<p align="center">
+  <img src=".github/preview.png" alt="OpenShield Desktop" width="100%">
+</p>
 
-# OpenShield Desktop ⚫🛡
+<h1 align="center">OpenShield Desktop</h1>
 
-The GUI companion for the [OpenShield](../openshield) AI coding harness — plus
-**OpenShield Pocket**, the mobile remote (same codebase, Android first).
+<p align="center">The GUI companion for the OpenShield AI coding harness: sessions, streaming chat, tool approvals and swarm monitor. Part of the Blackshield Company.</p>
 
-Part of the Blackshield Company.
+<p align="center">
+  <a href="https://github.com/Blackshield-Company/openshield-desktop/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Blackshield-Company/openshield-desktop/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-9AA0A8?labelColor=17171D"></a>
+  <a href="https://github.com/Blackshield-Company/openshield"><img alt="Part of OpenShield" src="https://img.shields.io/badge/part%20of-OpenShield-C1121F?labelColor=17171D"></a>
+</p>
+
+Pocket, the Android remote, is built from this codebase; its Android target lives in [openshield-mobile](https://github.com/Blackshield-Company/openshield-mobile).
 
 ## Stack
 
@@ -63,10 +70,11 @@ npm run check        # svelte-check
 npm run build        # static build → build/
 ```
 
-Regenerate icons after editing `scripts/generate_icons.py`:
+App icons come from the shared brand system ([docs/brand](docs/brand/README.md)).
+Regenerate them with:
 
 ```sh
-python3 scripts/generate_icons.py
+npx tauri icon docs/brand/tile-512.png
 ```
 
 ## Milestones
