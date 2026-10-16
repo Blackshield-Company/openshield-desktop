@@ -25,12 +25,18 @@
   import MessageBubble from "$lib/components/chat/MessageBubble.svelte";
   import ModelPicker from "$lib/components/chat/ModelPicker.svelte";
   import Icon from "$lib/components/Icon.svelte";
-  import ShieldMark from "$lib/components/ShieldMark.svelte";
+  import KnightSprite from "$lib/components/KnightSprite.svelte";
   import { status, checkHealth } from "$lib/services/backend";
   import { mockMode, setMockMode } from "$lib/services/mock";
 
   // First run / offline: offer the two ways in instead of an error.
   $: offline = $status !== "connected" && !$mockMode;
+
+  // Knight in the footer: thinking until the reply has content, then working.
+  $: lastMsg = $messages[$messages.length - 1];
+  $: knightState = (!lastMsg || lastMsg.role === "user" || lastMsg.blocks.length === 0
+    ? "thinking"
+    : "working") as "thinking" | "working";
 
   function onTryDemo() {
     setMockMode(true);
@@ -133,7 +139,7 @@
   <div class="scroll" bind:this={listEl} onscroll={handleScroll}>
     {#if $messages.length === 0}
       <div class="empty" class:card={offline} data-testid="chat-empty">
-        <ShieldMark size={52} />
+        <KnightSprite state="idle" size={112} />
         <h2>The shield is up.</h2>
         {#if offline}
           <p>Connect to your OpenShield server to start a session, or try Demo mode with no server.</p>
@@ -160,6 +166,12 @@
   </div>
 
   <footer class="perf" aria-live="polite">
+    {#if $streaming}
+      <span class="knight-status" aria-live="polite">
+        <KnightSprite state={knightState} size={22} />
+        <span>{knightState === "thinking" ? "Thinking…" : "Working…"}</span>
+      </span>
+    {/if}
     {#if $perf}
       <span>{$perf.tokens} tokens</span>
       <span>{$perf.ms.toLocaleString()} ms</span>
@@ -272,6 +284,13 @@
   .empty h2 {
     font-family: var(--font-ui);
     margin-top: 6px;
+  }
+
+  .knight-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-strong);
   }
 
   .empty-actions {
