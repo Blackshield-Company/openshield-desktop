@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Icon from "$lib/components/Icon.svelte";
   import { config, saveConfig, checkHealth, pairDevice, status } from "$lib/services/backend";
   import { mockMode, setMockMode } from "$lib/services/mock";
   import { parsePairingPayload, payloadToConnection } from "$lib/services/pairing";
@@ -150,7 +151,7 @@
 </svelte:head>
 
 <header class="page-head">
-  <h1>⚙ Settings</h1>
+  <h1>Settings</h1>
   <span class="conn {$status}">{$status}</span>
 </header>
 

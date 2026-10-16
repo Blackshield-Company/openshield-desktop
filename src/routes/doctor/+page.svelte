@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Icon from "$lib/components/Icon.svelte";
   import { onMount } from "svelte";
   import { getDoctor, fixDoctor, type DoctorComponent } from "$lib/services/backend";
 
@@ -72,7 +73,7 @@
 </svelte:head>
 
 <header class="page-head">
-  <h1>🩺 Doctor</h1>
+  <h1>Doctor</h1>
   <div class="actions">
     <button onclick={() => void refresh()} disabled={loading}>
       {loading ? "Refreshing…" : "Refresh"}
@@ -93,7 +94,7 @@
 {/if}
 
 {#if source === "mock"}
-  <p class="source-note">⚠ Mock report — <code>openshield serve</code> not connected.</p>
+  <p class="source-note"><Icon name="alert" size={14} /> Mock report — <code>openshield serve</code> not connected.</p>
 {:else}
   <p class="source-note ok">✓ Live report from backend.</p>
 {/if}
@@ -113,7 +114,7 @@
           <td class="name">{c.name}</td>
           <td>
             <span class="badge {c.status}">
-              {c.status === "ok" ? "✓ ok" : c.status === "warn" ? "⚠ warn" : "✗ err"}
+              {c.status === "ok" ? "✓ ok" : c.status === "warn" ? "! warn" : "✗ err"}
             </span>
           </td>
           <td class="detail">{c.detail}</td>

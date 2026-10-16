@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Icon from "$lib/components/Icon.svelte";
   /**
    * ApprovalInline — chat-stream variant of the approval gate. Reads the
    * shared pending/history stores by id, so a decision made HERE or on the
@@ -23,7 +24,7 @@
   </div>
 {:else if resolved}
   <div class="settled" data-decision={resolved.decision}>
-    🛡 {resolved.tool} — {resolved.decision === "approve_always" ? "approved (always)" : resolved.decision}
+    <Icon name="tool" size={13} /> {resolved.tool} — {resolved.decision === "approve_always" ? "approved (always)" : resolved.decision}
   </div>
 {:else}
   <!-- Unknown id (e.g. resumed history) — show nothing rather than a zombie. -->

@@ -24,6 +24,18 @@
   } from "$lib/services/chat";
   import MessageBubble from "$lib/components/chat/MessageBubble.svelte";
   import ModelPicker from "$lib/components/chat/ModelPicker.svelte";
+  import Icon from "$lib/components/Icon.svelte";
+  import ShieldMark from "$lib/components/ShieldMark.svelte";
+  import { status, checkHealth } from "$lib/services/backend";
+  import { mockMode, setMockMode } from "$lib/services/mock";
+
+  // First run / offline: offer the two ways in instead of an error.
+  $: offline = $status !== "connected" && !$mockMode;
+
+  function onTryDemo() {
+    setMockMode(true);
+    void checkHealth();
+  }
 
   let input = "";
   let sendBusy = false;
@@ -104,7 +116,7 @@
 
 <div class="chat">
   <header class="page-head">
-    <h1>💬 Chat</h1>
+    <h1>Chat</h1>
     {#if $currentSessionId}<span class="sess-chip" title={$currentSessionId}>{shortId($currentSessionId)}</span>{/if}
     <ModelPicker />
     <span class="spacer"></span>
@@ -113,21 +125,30 @@
 
   {#if $chatError}
     <div class="err-banner" role="alert">
-      <span>⚠ {$chatError}</span>
+      <span><Icon name="alert" size={15} /> {$chatError}</span>
       <button type="button" class="dismiss" onclick={dismissError} aria-label="Dismiss error">✕</button>
     </div>
   {/if}
 
   <div class="scroll" bind:this={listEl} onscroll={handleScroll}>
     {#if $messages.length === 0}
-      <div class="empty">
-        <div class="glyph" aria-hidden="true">🛡</div>
+      <div class="empty" class:card={offline} data-testid="chat-empty">
+        <ShieldMark size={52} />
         <h2>The shield is up.</h2>
-        <p>
-          Send a message to open a session — tokens stream live over
-          <code>/ws/v1/chat</code>, tool calls render inline as they run.
-        </p>
-        <small>Tip: flip on Demo mode in Settings to try it with no server.</small>
+        {#if offline}
+          <p>Connect to your OpenShield server to start a session, or try Demo mode with no server.</p>
+          <div class="empty-actions">
+            <button type="button" class="primary" onclick={() => void goto("/settings")}>
+              <Icon name="plug" size={15} /> Connect
+            </button>
+            <button type="button" onclick={onTryDemo}>
+              <Icon name="play" size={15} /> Try Demo mode
+            </button>
+          </div>
+        {:else}
+          <p>Send a message to open a session. Replies stream in live and tool calls show inline as they run.</p>
+          {#if $mockMode}<small>Demo mode: responses are scripted. Turn it off in Settings.</small>{/if}
+        {/if}
       </div>
     {:else}
       <div class="stream">
@@ -248,18 +269,31 @@
     padding: 24px;
   }
 
-  .empty .glyph {
-    font-size: 40px;
+  .empty h2 {
+    font-family: var(--font-ui);
+    margin-top: 6px;
+  }
+
+  .empty-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 6px;
+  }
+
+  .empty-actions button {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
   }
 
   .empty h2 {
-    font-size: 16px;
+    font-size: 20px;
   }
 
   .empty p {
     margin: 0;
-    max-width: 420px;
-    font-size: 13px;
+    max-width: 440px;
+    font-size: 14px;
   }
 
   .empty small {

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Icon from "$lib/components/Icon.svelte";
   /**
    * ModelPicker — compact per-session model override (M5).
    *
@@ -56,7 +57,7 @@
     {/each}
   </select>
   {#if $modelsError}
-    <span class="pick-err" title={$modelsError} aria-label="Model list failed to load">⚠</span>
+    <span class="pick-err" title={$modelsError} aria-label="Model list failed to load"><Icon name="alert" size={14} /></span>
   {/if}
 </label>
 

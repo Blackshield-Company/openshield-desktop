@@ -13,7 +13,7 @@ export const THEMES: ThemeMeta[] = [
   {
     id: "blackshield",
     label: "Blackshield",
-    swatches: ["#101014", "#8F959C", "#C1121F", "#D8D3C8"],
+    swatches: ["#0E0E12", "#9AA0A8", "#C1121F", "#E4DED2"],
   },
   {
     id: "synthwave84",
@@ -35,7 +35,7 @@ function applyToDom(theme: ThemeId) {
   if (!browser) return;
   document.documentElement.dataset.theme = theme;
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute("content", theme === "blackshield" ? "#101014" : "#240037");
+  if (meta) meta.setAttribute("content", theme === "blackshield" ? "#0E0E12" : "#240037");
 }
 
 export const theme = writable<ThemeId>(initialTheme());
