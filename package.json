@@ -1,6 +1,6 @@
 {
   "name": "openshield-desktop",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "OpenShield Desktop — the GUI companion for the OpenShield AI coding harness. Part of the Blackshield Company.",
   "type": "module",
   "scripts": {
