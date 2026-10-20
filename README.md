@@ -7,12 +7,12 @@
 <p align="center">The GUI companion for the OpenShield AI coding harness: sessions, streaming chat, tool approvals and swarm monitor. Part of the Blackshield Company.</p>
 
 <p align="center">
-  <a href="https://github.com/Blackshield-Company/openshield-desktop/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Blackshield-Company/openshield-desktop/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="https://github.com/synthalorian/openshield-desktop/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/synthalorian/openshield-desktop/actions/workflows/ci.yml/badge.svg"></a>
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-9AA0A8?labelColor=17171D"></a>
-  <a href="https://github.com/Blackshield-Company/openshield"><img alt="Part of OpenShield" src="https://img.shields.io/badge/part%20of-OpenShield-C1121F?labelColor=17171D"></a>
+  <a href="https://github.com/synthalorian/openshield"><img alt="Part of OpenShield" src="https://img.shields.io/badge/part%20of-OpenShield-C1121F?labelColor=17171D"></a>
 </p>
 
-Pocket, the Android remote, is built from this codebase; its Android target lives in [openshield-mobile](https://github.com/Blackshield-Company/openshield-mobile).
+Pocket, the Android remote, is built from this codebase; its Android target lives in [openshield-mobile](https://github.com/synthalorian/openshield-mobile).
 
 ## Stack
 
