@@ -15,7 +15,7 @@
   "license": "MIT",
   "dependencies": {
     "@tauri-apps/api": "^2",
-    "@tauri-apps/plugin-store": "^2.4.5"
+    "@tauri-apps/plugin-store": "^2.5.0"
   },
   "devDependencies": {
     "@sveltejs/adapter-static": "^3.0.6",
@@ -25,8 +25,8 @@
     "@testing-library/dom": "^10.4.2",
     "@testing-library/svelte": "^5.4.2",
     "jsdom": "^26.1.0",
-    "svelte": "^5.0.0",
-    "svelte-check": "^4.0.0",
+    "svelte": "^5.57.2",
+    "svelte-check": "^4.7.7",
     "typescript": "~5.6.2",
     "vite": "^6.0.3",
     "vitest": "^3.2.7"
