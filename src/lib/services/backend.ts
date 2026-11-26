@@ -21,6 +21,8 @@ import {
   mockMode,
   mockHealth,
   mockSessionsList,
+  mockCreateSession,
+  mockDeleteSession,
   mockSessionHistory,
   mockOpenSocket,
   mockGetApprovals,
@@ -328,6 +330,35 @@ export async function fixDoctor(): Promise<Result<unknown>> {
 export async function getSessions(): Promise<Result<unknown[]>> {
   if (get(mockMode)) return { success: true, data: mockSessionsList() };
   return request<unknown[]>("/api/v1/sessions");
+}
+
+function sessionIdFrom(raw: unknown): string | null {
+  if (!raw || typeof raw !== "object") return null;
+  const id = (raw as { id?: unknown }).id;
+  return typeof id === "string" && id ? id : null;
+}
+
+/** POST /api/v1/sessions — persist a new empty session and return its id. */
+export async function createSession(): Promise<Result<{ id: string }>> {
+  if (get(mockMode)) return { success: true, data: mockCreateSession() };
+  const r = await request<unknown>("/api/v1/sessions", { method: "POST" });
+  if (!r.success) return r;
+  const id = sessionIdFrom(r.data);
+  if (!id) return { success: false, error: "The server did not return a session id." };
+  return { success: true, data: { id } };
+}
+
+/** DELETE /api/v1/sessions/:id — archive (close) a session. */
+export async function deleteSession(id: string): Promise<Result<null>> {
+  if (get(mockMode)) {
+    mockDeleteSession(id);
+    return { success: true, data: null };
+  }
+  const r = await request<unknown>(`/api/v1/sessions/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+  if (!r.success) return r;
+  return { success: true, data: null };
 }
 
 /** Full message history for one session (used by /chat resume). */

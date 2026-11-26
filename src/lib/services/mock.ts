@@ -134,6 +134,24 @@ export function mockSessionHistory(id: string): unknown | null {
   return mockHistories.get(id) ?? null;
 }
 
+/** Create an empty mock session and return its id. */
+export function mockCreateSession(): { id: string } {
+  const id = `mock-s${Date.now().toString(36)}`;
+  const now = new Date().toISOString();
+  mockSessions = [
+    ...mockSessions,
+    { id, title: `Session ${id.slice(0, 8)}`, created_at: now, updated_at: now },
+  ];
+  mockHistories.set(id, { messages: [] });
+  return { id };
+}
+
+/** Archive/remove a mock session. Missing ids are a no-op. */
+export function mockDeleteSession(id: string): void {
+  mockSessions = mockSessions.filter((s) => s.id !== id);
+  mockHistories.delete(id);
+}
+
 // ── Mock approval store (M3) ─────────────────────────────────────────────
 
 export type MockApprovalDecision = "approved" | "rejected" | "approve_always";

@@ -47,18 +47,43 @@
     message = null;
     try {
       const r = await fixDoctor();
-      message = r.success
-        ? "Fix pass submitted."
-        : `Fix failed: ${r.error}`;
-      await refresh();
+      if (r.success) {
+        const fixes = Array.isArray((r.data as { fixes_applied?: unknown } | null)?.fixes_applied)
+          ? ((r.data as { fixes_applied: unknown[] }).fixes_applied)
+          : [];
+        const names = fixes.map(String).filter(Boolean);
+        message = names.length
+          ? `Fix pass applied: ${names.join("; ")}.`
+          : "Fix pass finished — nothing to apply.";
+        if (r.data) components = normalize(r.data);
+        source = "live";
+      } else {
+        message = `Fix failed: ${r.error}`;
+        await refresh();
+      }
     } finally {
       fixing = false;
     }
   }
 
+  function mapStatus(status: string): DoctorComponent["status"] {
+    if (status === "healthy" || status === "ok") return "ok";
+    if (status === "warning" || status === "warn") return "warn";
+    return "err";
+  }
+
   function normalize(raw: unknown): DoctorComponent[] {
-    if (raw && typeof raw === "object" && Array.isArray((raw as { components?: unknown }).components)) {
-      return (raw as { components: DoctorComponent[] }).components;
+    if (!raw || typeof raw !== "object") return MOCK_COMPONENTS;
+    const obj = raw as Record<string, unknown>;
+    if (Array.isArray(obj.components)) {
+      return obj.components as DoctorComponent[];
+    }
+    if (Array.isArray(obj.checks)) {
+      return (obj.checks as Record<string, unknown>[]).map((c) => ({
+        name: String(c.component ?? c.name ?? "check"),
+        status: mapStatus(String(c.status ?? "")),
+        detail: String(c.message ?? c.detail ?? ""),
+      }));
     }
     return MOCK_COMPONENTS;
   }

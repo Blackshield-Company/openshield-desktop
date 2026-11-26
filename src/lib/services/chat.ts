@@ -21,6 +21,8 @@ import {
   openSocket,
   getSessions,
   getSessionHistory,
+  createSession,
+  deleteSession,
   type ChatSocket,
   type Result,
   type WsEnvelope,
@@ -408,16 +410,42 @@ export function sendMessage(text: string): Result<null> {
   return { success: true, data: null };
 }
 
-/** Start a fresh session and switch to it. */
-export function newSession(): string {
-  const sid = genId("sess");
+function clearActiveSession(sid: string) {
   currentSessionId.set(sid);
   messages.set([]);
   streaming.set(false);
   streamMsgId = null;
   perf.set(null);
   chatError.set(null);
-  return sid;
+}
+
+/** Start a fresh session, persist it via POST /api/v1/sessions, and switch to it. */
+export async function newSession(): Promise<Result<string>> {
+  const r = await createSession();
+  if (!r.success) {
+    chatError.set(`Could not create a session: ${r.error}`);
+    return { success: false, error: r.error };
+  }
+  clearActiveSession(r.data.id);
+  await refreshSessions();
+  return { success: true, data: r.data.id };
+}
+
+/** Archive a session via DELETE /api/v1/sessions/:id and drop it from the list. */
+export async function closeSession(id: string): Promise<Result<null>> {
+  const r = await deleteSession(id);
+  if (!r.success) {
+    return { success: false, error: r.error };
+  }
+  sessions.update((list) => list.filter((s) => s.id !== id));
+  if (get(currentSessionId) === id) {
+    currentSessionId.set(null);
+    messages.set([]);
+    streaming.set(false);
+    streamMsgId = null;
+    perf.set(null);
+  }
+  return { success: true, data: null };
 }
 
 /** Load a session's history and make it current. */
