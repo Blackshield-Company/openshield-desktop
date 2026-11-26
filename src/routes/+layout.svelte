@@ -193,6 +193,9 @@
     display: flex;
     height: 100vh;
     overflow: hidden;
+    padding-top: var(--safe-top);
+    padding-left: var(--safe-left);
+    padding-right: var(--safe-right);
   }
 
   /* ── Sidebar rail (wide) ── */
@@ -383,7 +386,7 @@
   @media (max-width: 759px) {
     .page {
       padding: 14px;
-      padding-bottom: calc(var(--nav-bottom-height) + 14px);
+      padding-bottom: calc(var(--nav-bottom-height) + var(--safe-bottom) + 14px);
     }
   }
 
@@ -495,7 +498,10 @@
     left: 0;
     right: 0;
     bottom: 0;
-    height: var(--nav-bottom-height);
+    height: calc(var(--nav-bottom-height) + var(--safe-bottom));
+    padding-bottom: var(--safe-bottom);
+    padding-left: var(--safe-left);
+    padding-right: var(--safe-right);
     background: var(--bg-elevated);
     border-top: 1px solid var(--border);
     z-index: 10;
@@ -529,13 +535,13 @@
   /* ── Approval toasts ── */
   .toasts {
     position: fixed;
-    top: 14px;
-    right: 14px;
+    top: calc(14px + var(--safe-top));
+    right: calc(14px + var(--safe-right));
     z-index: 50;
     display: flex;
     flex-direction: column;
     gap: 8px;
-    max-width: min(340px, calc(100vw - 28px));
+    max-width: min(340px, calc(100vw - 28px - var(--safe-left) - var(--safe-right)));
   }
 
   .toast {
