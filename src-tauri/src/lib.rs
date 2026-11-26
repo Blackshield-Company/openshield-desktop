@@ -167,7 +167,11 @@ fn read_local_token() -> Option<String> {
         .join("openshield")
         .join("desktop.token");
     let token = std::fs::read_to_string(path).ok()?.trim().to_string();
-    if token.is_empty() { None } else { Some(token) }
+    if token.is_empty() {
+        None
+    } else {
+        Some(token)
+    }
 }
 
 // ── Tray (desktop only) ───────────────────────────────────────────────────

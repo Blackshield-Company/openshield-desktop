@@ -524,7 +524,7 @@ export function mockOpenSocket(
           name: "fs.read",
           ok: true,
           ms: 87,
-          result: 'fn shield_up() -> bool {\n    true\n}\n\nfn main() {\n    assert!(shield_up());\n}',
+          output: 'fn shield_up() -> bool {\n    true\n}\n\nfn main() {\n    assert!(shield_up());\n}',
         },
       },
       t,

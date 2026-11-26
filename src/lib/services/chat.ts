@@ -263,8 +263,12 @@ export function handleEnvelope(env: WsEnvelope): void {
           block.tool.ok = Boolean((env.data as { ok?: unknown }).ok);
           const ms = (env.data as { ms?: unknown }).ms;
           block.tool.ms = typeof ms === "number" ? ms : Date.now() - block.tool.startedAt;
-          const result = (env.data as { result?: unknown }).result;
-          if (typeof result === "string") block.tool.result = result;
+          // The server (openshield src/api/ws.rs) sends the tool output as
+          // `data.output`; `data.result` is kept for older servers.
+          const d = env.data as { output?: unknown; result?: unknown };
+          const raw = d.output !== undefined ? d.output : d.result;
+          if (typeof raw === "string") block.tool.result = raw;
+          else if (raw !== undefined && raw !== null) block.tool.result = JSON.stringify(raw, null, 2);
         }
         return [...arr];
       });
