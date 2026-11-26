@@ -19,6 +19,13 @@
   --nav-rail-width: 216px;
   --nav-bottom-height: 56px;
   --wide-breakpoint: 760px;
+  /* Pocket / notched displays. --os-inset-* is filled by MainActivity when
+     the Android WebView reports env(safe-area-inset-*) as 0 (common with
+     edge-to-edge on Android 15+). Desktop leaves both sources at 0. */
+  --safe-top: max(env(safe-area-inset-top, 0px), var(--os-inset-top, 0px));
+  --safe-right: max(env(safe-area-inset-right, 0px), var(--os-inset-right, 0px));
+  --safe-bottom: max(env(safe-area-inset-bottom, 0px), var(--os-inset-bottom, 0px));
+  --safe-left: max(env(safe-area-inset-left, 0px), var(--os-inset-left, 0px));
 }
 
 /* ── Blackshield (flagship, Black Steel) ─────────────────────────────── */

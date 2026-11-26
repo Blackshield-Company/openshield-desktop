@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Pocket: the top banner and bottom tab bar no longer draw under the status bar or the gesture bar. The shell pads with `env(safe-area-inset-*)`, and on Android the activity injects system bar and display-cutout insets when the WebView reports those env() values as 0. Desktop layout is unchanged.
+
 ### Added
 
 - New chat sessions are created with `POST /api/v1/sessions` so they persist on the server. Sessions can be closed from the list with `DELETE /api/v1/sessions/:id`.
