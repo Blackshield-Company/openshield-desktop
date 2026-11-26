@@ -12,7 +12,7 @@
   <a href="https://github.com/Blackshield-Company/openshield"><img alt="Part of OpenShield" src="https://img.shields.io/badge/part%20of-OpenShield-C1121F?labelColor=17171D"></a>
 </p>
 
-Pocket, the Android remote, is built from this codebase; its Android target lives in [openshield-mobile](https://github.com/Blackshield-Company/openshield-mobile).
+Pocket, the Android remote, is built from this codebase (`com.openshield.pocket`). The Gradle project is in `src-tauri/gen/android`. [openshield-mobile](https://github.com/Blackshield-Company/openshield-mobile) still holds the Pocket design brief and a mirror of that Android tree; this repo is the one to build from.
 
 ## Stack
 
@@ -68,7 +68,10 @@ npm run dev          # vite dev server on :1420
 npm run tauri dev    # full Tauri window
 npm run check        # svelte-check
 npm run build        # static build → build/
+./scripts/build-android-apk.sh   # debug/self-signed Pocket APK
 ```
+
+The APK command needs a JDK 17 or 21, the Android SDK and NDK (`ANDROID_HOME`, default `~/Android/Sdk`), and the `aarch64-linux-android` Rust target. It does not publish a release.
 
 App icons come from the shared brand system ([docs/brand](docs/brand/README.md)).
 Regenerate them with:
