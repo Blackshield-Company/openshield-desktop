@@ -16,7 +16,7 @@ OpenShield Desktop + Pocket build record. Design source of truth:
 ## Remaining
 
 - Pocket device pass — install + screencap on the Android target
-- v0.1 release packaging
+- Signed / store release packaging (needs synth's yes on spend and store accounts)
 
 ---
 

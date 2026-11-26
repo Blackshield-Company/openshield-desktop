@@ -15,6 +15,7 @@
     refreshSessions,
     resumeSession,
     newSession,
+    closeSession,
   } from "$lib/services/chat";
 
   let busyId: string | null = null;
@@ -42,8 +43,32 @@
 
   async function onNew() {
     if (busyId) return;
-    newSession();
-    await goto("/chat");
+    busyId = "__new__";
+    error = null;
+    try {
+      const r = await newSession();
+      if (r.success) {
+        await goto("/chat");
+      } else {
+        error = r.error;
+      }
+    } finally {
+      busyId = null;
+    }
+  }
+
+  async function onClose(id: string, ev: MouseEvent) {
+    ev.stopPropagation();
+    ev.preventDefault();
+    if (busyId) return;
+    busyId = id;
+    error = null;
+    try {
+      const r = await closeSession(id);
+      if (!r.success) error = r.error;
+    } finally {
+      busyId = null;
+    }
   }
 
   async function onRefresh() {
@@ -114,6 +139,15 @@
             {#if s.id === $currentSessionId} · current{/if}
           </span>
           <span class="go" aria-hidden="true">➤</span>
+        </button>
+        <button
+          type="button"
+          class="close"
+          onclick={(e) => void onClose(s.id, e)}
+          disabled={busyId !== null}
+          title="Close session"
+        >
+          Close
         </button>
       </li>
     {/each}
@@ -188,11 +222,17 @@
     max-width: 760px;
   }
 
+  li {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+  }
+
   .sess {
     display: flex;
     align-items: center;
     gap: 12px;
-    width: 100%;
+    flex: 1;
     text-align: left;
     padding: 12px 14px;
     background: var(--bg-elevated);
@@ -221,5 +261,20 @@
 
   .go {
     color: var(--accent);
+  }
+
+  .close {
+    flex: 0 0 auto;
+    padding: 0 12px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-strong);
+    color: var(--text-faint);
+    border-radius: var(--radius);
+    font-size: 12px;
+  }
+
+  .close:hover:not(:disabled) {
+    color: var(--text-strong);
+    border-color: var(--err, #c1121f);
   }
 </style>

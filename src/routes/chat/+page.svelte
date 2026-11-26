@@ -73,10 +73,11 @@
     abortTurn();
   }
 
-  function onNewChat() {
-    newSession();
+  async function onNewChat() {
+    const r = await newSession();
+    if (!r.success) return;
     if ($page.url.pathname !== "/chat" || $page.url.searchParams.has("session")) {
-      void goto("/chat");
+      await goto("/chat");
     }
   }
 

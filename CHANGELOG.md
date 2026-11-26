@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- New chat sessions are created with `POST /api/v1/sessions` so they persist on the server. Sessions can be closed from the list with `DELETE /api/v1/sessions/:id`.
+- The doctor panel understands the live `/api/v1/doctor` report shape (`checks`, `healthy`/`warning`/`critical`) and shows `fixes_applied` after `POST /api/v1/doctor/fix`. Needs OpenShield with that endpoint (the companion core PR).
+
+### Changed
+
+- CI runs `svelte-check`, `cargo check` for the Tauri crate, and a Linux `.deb` Tauri build, in addition to the existing frontend test/build job.
+- Safe dependency bumps: `@sveltejs/kit` 2.70.4, `@sveltejs/adapter-static` 3.0.11, Vite 6.4.6. Production (`npm audit --omit=dev`) is clean. Remaining npm advisories are dev-only and need breaking upgrades (SvelteKit 3, Vitest 5); those were left for a later call.
+
 ## [0.2.0] - 2026-10-16
 
 ### Changed
