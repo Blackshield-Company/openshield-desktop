@@ -2,6 +2,7 @@
   import Icon from "$lib/components/Icon.svelte";
   import { onMount } from "svelte";
   import { getDoctor, fixDoctor, type DoctorComponent } from "$lib/services/backend";
+  import { normalizeDoctor, type DoctorSource } from "$lib/services/doctor";
 
   // Offline stand-in for `openshield doctor` so the panel is always alive,
   // even before the backend is configured. Mirrors the real component set.
@@ -15,7 +16,7 @@
   ];
 
   let components: DoctorComponent[] = [];
-  let source: "live" | "mock" = "mock";
+  let source: DoctorSource = "mock";
   let loading = false;
   let fixing = false;
   let message: string | null = null;
@@ -26,8 +27,15 @@
     try {
       const r = await getDoctor();
       if (r.success) {
-        components = normalize(r.data);
-        source = "live";
+        const parsed = normalizeDoctor(r.data);
+        if (parsed.recognized) {
+          components = parsed.components;
+          source = "live";
+        } else {
+          components = [];
+          source = "unknown";
+          message = "Live doctor returned an unrecognized report — no mock rows shown.";
+        }
       } else {
         components = MOCK_COMPONENTS;
         source = "mock";
@@ -55,8 +63,19 @@
         message = names.length
           ? `Fix pass applied: ${names.join("; ")}.`
           : "Fix pass finished — nothing to apply.";
-        if (r.data) components = normalize(r.data);
-        source = "live";
+        if (r.data) {
+          const parsed = normalizeDoctor(r.data);
+          if (parsed.recognized) {
+            components = parsed.components;
+            source = "live";
+          } else {
+            components = [];
+            source = "unknown";
+            message = `${message} The post-fix report shape was unrecognized.`;
+          }
+        } else {
+          source = "live";
+        }
       } else {
         message = `Fix failed: ${r.error}`;
         await refresh();
@@ -64,28 +83,6 @@
     } finally {
       fixing = false;
     }
-  }
-
-  function mapStatus(status: string): DoctorComponent["status"] {
-    if (status === "healthy" || status === "ok") return "ok";
-    if (status === "warning" || status === "warn") return "warn";
-    return "err";
-  }
-
-  function normalize(raw: unknown): DoctorComponent[] {
-    if (!raw || typeof raw !== "object") return MOCK_COMPONENTS;
-    const obj = raw as Record<string, unknown>;
-    if (Array.isArray(obj.components)) {
-      return obj.components as DoctorComponent[];
-    }
-    if (Array.isArray(obj.checks)) {
-      return (obj.checks as Record<string, unknown>[]).map((c) => ({
-        name: String(c.component ?? c.name ?? "check"),
-        status: mapStatus(String(c.status ?? "")),
-        detail: String(c.message ?? c.detail ?? ""),
-      }));
-    }
-    return MOCK_COMPONENTS;
   }
 
   onMount(() => {
@@ -106,8 +103,8 @@
     <button
       class="primary"
       onclick={() => void runFix()}
-      disabled={fixing || source === "mock"}
-      title={source === "mock" ? "Connect to a backend to run --fix" : "Run doctor --fix"}
+      disabled={fixing || source !== "live"}
+      title={source !== "live" ? "Connect to a backend to run --fix" : "Run doctor --fix"}
     >
       {fixing ? "Fixing…" : "Run --fix"}
     </button>
@@ -120,6 +117,8 @@
 
 {#if source === "mock"}
   <p class="source-note"><Icon name="alert" size={14} /> Mock report — <code>openshield serve</code> not connected.</p>
+{:else if source === "unknown"}
+  <p class="source-note"><Icon name="alert" size={14} /> Doctor report unavailable — unrecognized response from the backend.</p>
 {:else}
   <p class="source-note ok">✓ Live report from backend.</p>
 {/if}
