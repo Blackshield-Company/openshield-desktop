@@ -20,5 +20,6 @@ src-tauri/gen/schemas/
 Thumbs.db
 *.log
 
-# Android target lives in the openshield-mobile repo
-src-tauri/gen/android/
+# The Android Gradle project (OpenShield Pocket) is tracked in
+# src-tauri/gen/android so `./scripts/build-android-apk.sh` works from a
+# fresh clone. Build artifacts stay ignored via that tree's own .gitignore.
